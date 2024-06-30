@@ -9,8 +9,8 @@ jobs:
   add-user:
     runs-on: ubuntu-latest
     env:
-      USERNAME_TO_ADD: 'JORGE'  # Define el nombre de usuario aquí
-      PERMISSIONS: 'read'  # Define los permisos aquí (admin, write, read, etc.)
+      USERNAME_TO_ADD: 'jorge'  # Nombre de usuario que deseas agregar como colaborador
+      PERMISSIONS: 'write'  # Define los permisos aquí (admin, write, read, etc.)
       PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
 
     steps:
