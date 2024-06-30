@@ -26,6 +26,8 @@ jobs:
               -H "Authorization: token $PAT_GITHUB" \
               -d "{\"permission\":\"$PERMISSIONS\"}" \
               "https://api.github.com/repos/$repo_name/collaborators/$USERNAME_TO_ADD"
-          done
+            
+            # Agregar confirmación de éxito para cada repositorio
+            echo "User $USERNAME_TO_ADD added to repository $repo_name successfully."
         env:
           PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
