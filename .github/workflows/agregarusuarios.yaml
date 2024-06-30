@@ -1,23 +1,40 @@
-name: Print GitHub API Response
+name: Add User to Repositories
 
 on:
   push:
     branches:
-      - main
+      - main  # Cambia esto según la rama que desees que active la acción
 
 jobs:
-  print-api-response:
+  add-user:
     runs-on: ubuntu-latest
     env:
+      USERNAME_TO_ADD: 'jorge'  # Nombre de usuario que deseas agregar como colaborador
+      PERMISSIONS: 'admin'  # Define los permisos aquí (admin, write, read, etc.)
       PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Debug curl output
+      - name: List repositories
         run: |
-          response=$(curl -s -H "Authorization: token $PAT_GITHUB" -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/user/repos)
-          echo "API Response:"
-          echo "$response"
+          repos=$(curl -s "https://api.github.com/user/repos?per_page=100" -H "Authorization: token $PAT_GITHUB" | jq -r '.[] | .full_name')
+          echo "$repos" | while IFS= read -r repo; do
+            repo_name=$(basename "$repo")
+            echo "Repository: $repo_name"
+            echo "Adding user $USERNAME_TO_ADD with permissions $PERMISSIONS"
+
+            # Agregar usuario como colaborador
+            curl -X PUT \
+              -H "Authorization: token $PAT_GITHUB" \
+              -d "{\"permission\":\"$PERMISSIONS\"}" \
+              "https://api.github.com/repos/$repo/collaborators/$USERNAME_TO_ADD"
+
+            echo "User $USERNAME_TO_ADD added to repository $repo_name successfully."
+            echo ""
+          done
+          echo "All repositories processed successfully."
+
+        env:
+          PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
