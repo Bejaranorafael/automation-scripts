@@ -9,9 +9,9 @@ jobs:
   add-user:
     runs-on: ubuntu-latest
     env:
-      USERNAME_TO_ADD: 'jorge'  # Define el nombre de usuario aquí
-      PERMISSIONS: 'admin'  # Define los permisos aquí (admin, write, read, etc.)
-      GITHUB_TOKEN: ${{ secrets.prueba_script }}
+      USERNAME_TO_ADD: 'JORGE'  # Define el nombre de usuario aquí
+      PERMISSIONS: 'read'  # Define los permisos aquí (admin, write, read, etc.)
+      PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
 
     steps:
       - name: Checkout repository
@@ -23,8 +23,8 @@ jobs:
             repo_name=$(basename $repo)
             echo "Adding user $USERNAME_TO_ADD to repository $repo_name with permissions $PERMISSIONS"
             curl -X PUT \
-              -H "Authorization: token $prueba_script" \
+              -H "Authorization: token $PAT_GITHUB" \
               -d "{\"permission\":\"$PERMISSIONS\"}" \
-              "https://api.github.com/repos/$GITHUB_REPOSITORY/collaborators/$USERNAME_TO_ADD"
+              "https://api.github.com/repos/$repo_name/collaborators/$USERNAME_TO_ADD"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
