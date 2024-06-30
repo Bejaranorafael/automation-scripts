@@ -9,9 +9,9 @@ jobs:
   add-user:
     runs-on: ubuntu-latest
     env:
-      USERNAME_TO_ADD: ${{ github.event.inputs.username }}
-      PERMISSIONS: ${{ github.event.inputs.permissions }}
-      GITHUB_TOKEN: ${{ secrets.MI_TOKEN }}
+      USERNAME_TO_ADD: 'jorge'  # Define el nombre de usuario aquí
+      PERMISSIONS: 'admin'  # Define los permisos aquí (admin, write, read, etc.)
+      GITHUB_TOKEN: ${{ secrets.prueba_script }}
 
     steps:
       - name: Checkout repository
@@ -19,7 +19,12 @@ jobs:
 
       - name: Add user to repositories
         run: |
-          # Script para agregar el usuario usando $USERNAME_TO_ADD y $PERMISSIONS
-          echo "Adding user $USERNAME_TO_ADD with permissions $PERMISSIONS"
+          for repo in $(curl -s "https://api.github.com/user/repos" | grep -o 'git@github.com:[^"]*'); do
+            repo_name=$(basename $repo)
+            echo "Adding user $USERNAME_TO_ADD to repository $repo_name with permissions $PERMISSIONS"
+            curl -X PUT \
+              -H "Authorization: token $prueba_script" \
+              -d "{\"permission\":\"$PERMISSIONS\"}" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/collaborators/$USERNAME_TO_ADD"
         env:
-          GITHUB_TOKEN: ${{ secrets.MI_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
