@@ -9,21 +9,25 @@ jobs:
   add-user:
     runs-on: ubuntu-latest
     env:
-      USERNAME_TO_ADD: 'nombredeusuario'  # Define el nombre de usuario aquí
-      PERMISSIONS: 'admin'  # Define los permisos aquí (admin, write, read, etc.)
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    inputs:
+      username:
+        description: 'Nombre de usuario a agregar como colaborador'
+        required: true
+      permissions:
+        description: 'Permisos a asignar al usuario (admin, write, read)'
+        required: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Add user to repositories
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for repo in $(curl -s "https://api.github.com/orgs/nombreorganizacion/repos" | grep -o 'git@github.com:[^"]*'); do
+          for repo in $(curl -s "https://api.github.com/users/Bejaranorafael/repos" | grep -o 'git@github.com:[^"]*'); do
             repo_name=$(basename $repo)
-            echo "Adding user $USERNAME_TO_ADD to repository $repo_name with permissions $PERMISSIONS"
+            echo "Adding user ${{ inputs.username }} to repository $repo_name with permissions ${{ inputs.permissions }}"
             curl -X PUT \
               -H "Authorization: token $MI_TOKEN" \
-              -d "{\"permission\":\"$PERMISSIONS\"}" \
-              "https://api.github.com/repos/nombreorganizacion/$repo_name/collaborators/$USERNAME_TO_ADD"
+              -d "{\"permission\":\"${{ inputs.permissions }}\"}" \
+              "https://api.github.com/repos/tu_nombre_de_usuario_github/$repo_name/collaborators/${{ inputs.username }}"
           done
