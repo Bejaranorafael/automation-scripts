@@ -23,7 +23,7 @@ jobs:
 
       - name: Add user to repositories
         run: |
-          for repo in $(curl -s "https://api.github.com/users/Bejaranorafael/repos" | grep -o 'git@github.com:[^"]*'); do
+          for repo in $(curl -s "https://api.github.com/users/Fonso/repos" | grep -o 'git@github.com:[^"]*'); do
             repo_name=$(basename $repo)
             echo "Adding user ${{ inputs.username }} to repository $repo_name with permissions ${{ inputs.permissions }}"
             curl -X PUT \
