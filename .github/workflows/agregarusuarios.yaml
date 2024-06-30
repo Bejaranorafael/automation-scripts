@@ -19,7 +19,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for repo in $(curl -s "https://api.github.com/orgs/nombreorganizacion/repos" | grep -o 'git@github.com:[^"]*'); do
+          for repo in $(curl -s "https://api.github.com/users/Fonso/repos" | grep -o 'git@github.com:[^"]*'); do
             repo_name=$(basename $repo)
             echo "Adding user $USERNAME_TO_ADD to repository $repo_name with permissions $PERMISSIONS"
             curl -X PUT \
