@@ -12,26 +12,43 @@ jobs:
       USERNAME_TO_ADD: 'jorge'  # Nombre de usuario que deseas agregar como colaborador
       PERMISSIONS: 'admin'  # Define los permisos aquí (admin, write, read, etc.)
       PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
+      CORPORATE_DOMAIN: 'example.com'  # Dominio corporativo permitido
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: List repositories
+      - name: Add user to repositories
         run: |
-          repos=$(curl -s "https://api.github.com/user/repos?per_page=100" -H "Authorization: token $PAT_GITHUB" | jq -r '.[] | .full_name')
-          echo "$repos" | while IFS= read -r repo; do
-            repo_name=$(basename "$repo")
+          repos=$(curl -s "https://api.github.com/user/repos" | grep -o 'git@github.com:[^"]*')
+          for repo in $repos; do
+            repo_name=$(basename $repo)
             echo "Repository: $repo_name"
-            echo "Adding user $USERNAME_TO_ADD with permissions $PERMISSIONS"
 
-            # Agregar usuario como colaborador
-            curl -X PUT \
-              -H "Authorization: token $PAT_GITHUB" \
-              -d "{\"permission\":\"$PERMISSIONS\"}" \
-              "https://api.github.com/repos/$repo/collaborators/$USERNAME_TO_ADD"
+            # Verificar si el usuario ya es colaborador
+            is_collaborator=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $PAT_GITHUB" "https://api.github.com/repos/$repo_name/collaborators/$USERNAME_TO_ADD")
 
-            echo "User $USERNAME_TO_ADD added to repository $repo_name successfully."
+            if [ $is_collaborator -eq 204 ]; then
+              echo "User $USERNAME_TO_ADD is already a collaborator in repository $repo_name. Skipping."
+            else
+              # Obtener el correo electrónico del usuario a agregar como colaborador
+              user_email=$(curl -s "https://api.github.com/users/$USERNAME_TO_ADD" | jq -r '.email')
+
+              # Verificar el dominio del correo electrónico
+              if [[ "$user_email" == *"$CORPORATE_DOMAIN" ]]; then
+                echo "Adding user $USERNAME_TO_ADD with permissions $PERMISSIONS"
+
+                # Agregar usuario como colaborador
+                curl -X PUT \
+                  -H "Authorization: token $PAT_GITHUB" \
+                  -d "{\"permission\":\"$PERMISSIONS\"}" \
+                  "https://api.github.com/repos/$repo_name/collaborators/$USERNAME_TO_ADD"
+
+                echo "User $USERNAME_TO_ADD added to repository $repo_name successfully."
+              else
+                echo "Skipping user $USERNAME_TO_ADD as their email domain is not $CORPORATE_DOMAIN."
+              fi
+            fi
             echo ""
           done
           echo "All repositories processed successfully."
