@@ -14,10 +14,10 @@ jobs:
       PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout 
         uses: actions/checkout@v2
 
-      - name: Get repository list
+      - name: Repositorios
         run: |
           repos=$(curl -s -H "Authorization: token $PAT_GITHUB" "https://api.github.com/user/repos" | jq -r '.[].ssh_url')
           for repo in $repos; do
