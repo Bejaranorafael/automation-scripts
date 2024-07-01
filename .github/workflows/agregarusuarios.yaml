@@ -1,9 +1,7 @@
 name:   Prueba de accion agregar usuario
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   add-user:
