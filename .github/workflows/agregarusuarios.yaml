@@ -10,39 +10,43 @@ jobs:
     runs-on: ubuntu-latest
     env:
       USERNAME_TO_ADD: 'jorge'  # Nombre de usuario que deseas agregar como colaborador
-      PERMISSIONS: 'admin'      # Define los permisos aquí (admin, write, read, etc.)
+      PERMISSIONS: 'admin'  # Define los permisos aquí (admin, write, read, etc.)
       PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Add user to repositories
+      - name: Get repository list
         run: |
-          repos=$(curl -s "https://api.github.com/user/repos" | jq -r '.[].ssh_url')
+          repos=$(curl -s -H "Authorization: token $PAT_GITHUB" "https://api.github.com/user/repos" | jq -r '.[].ssh_url')
           for repo in $repos; do
             repo_name=$(basename $repo)
             echo "Repository: $repo_name"
-
+          
             # Verificar si el usuario ya es colaborador
             collaborator_check=$(curl -s -H "Authorization: token $PAT_GITHUB" "https://api.github.com/repos/$repo_name/collaborators/$USERNAME_TO_ADD")
-
-            # Si el usuario ya es colaborador, omitir la adición
-            if [[ $(echo "$collaborator_check" | jq -r '.message') == "Not Found" ]]; then
+          
+            # Si el usuario no es colaborador, agregarlo
+            if [[ "$(echo "$collaborator_check" | jq -r '.message')" == "Not Found" ]]; then
               # Agregar usuario como colaborador
-              curl -X PUT \
+              response=$(curl -s -X PUT \
                 -H "Authorization: token $PAT_GITHUB" \
                 -d "{\"permission\":\"$PERMISSIONS\"}" \
-                "https://api.github.com/repos/$repo_name/collaborators/$USERNAME_TO_ADD"
+                "https://api.github.com/repos/$repo_name/collaborators/$USERNAME_TO_ADD")
 
-              echo "User $USERNAME_TO_ADD added to repository $repo_name successfully."
+              # Verificar el resultado
+              if [[ "$(echo "$response" | jq -r '.id')" != "null" ]]; then
+                echo "User $USERNAME_TO_ADD added to repository $repo_name successfully."
+              else
+                echo "Failed to add user $USERNAME_TO_ADD to repository $repo_name."
+              fi
             else
               echo "User $USERNAME_TO_ADD is already a collaborator in repository $repo_name. Skipping."
             fi
-
+            
             echo ""
           done
-          echo "All repositories processed successfully."
 
         env:
           PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
