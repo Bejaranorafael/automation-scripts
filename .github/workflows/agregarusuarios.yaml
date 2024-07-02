@@ -7,7 +7,7 @@ jobs:
   add-user:
     runs-on: ubuntu-latest
     env:
-      USERNAME_TO_ADD: 'jorge'  # Nombre de usuario 
+      USERNAME_TO_ADD: 'Rabejarno1'  # Nombre de usuario 
       PERMISSIONS: 'admin'  # (admin, write, read, etc)
       PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
 
